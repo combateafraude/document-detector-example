@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Utilizando SDK Document Detector</title>
+  <!-- Importanto SDK document detector -->
+  <script src='https://repo.combateafraude.com/javascript/release/document-detector/<VERSION>/document-detector.min.js'></script>
+  <style>
+    body {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn {
+      background: #000;
+      color: #fff;
+      padding: 10px 20px;
+      cursor: pointer;
+      margin: 10px;
+    }
+  </style>
+</head>
+<body>
+  <a onclick="openDocumentDetector()" class="btn">
+    ABRIR CAPTURA DE DOCUMENTO
+  </a>
+
+  <script>
+    var documentDetectorOptions = {
+      mobileOnly: false,
+      theme: {
+        closeButton: '#fff',
+        checkmark: '#fff',
+        alertButton: '#fff',
+        cameraSwitch: '#fff',
+        pictureButton: '#fff',
+      }
+    };
+
+    var token = '<TOKEN>';
+    var documentDetector = DocumentDetector ? new DocumentDetector.initialize(token, documentDetectorOptions) : null;
+
+    documentDetector.on('failed', (data) => {
+      console.log('DocumentDetector failed while initializing');
+      console.log(data.detail);
+    });
+
+    function openDocumentDetector() {
+      documentDetector.open({
+        documentType: 'CNH', // tipo do documento CNH ou RG
+      }).catch((err) => {
+        console.log(err);
+      });
+
+      documentDetector.on('ready', () => {
+        console.log('SDK - ready!');
+
+        documentDetector.initPermissions()
+        .then(accepted => {
+          if (accepted) {
+            // Usuário permitiu uso da camera
+          }
+        })
+        .catch(err => {
+          // Houve um erro ao pedir acesso a camera
+        });
+      });
+
+      documentDetector.on('finished', e => {
+        console.log('SDK - finished!');
+        console.log(e.detail);
+      });
+
+      documentDetector.on('closed', () => {
+        console.log('SDK - closed!');
+      });
+    };
+  </script>
+</body>
