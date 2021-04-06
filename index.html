@@ -25,60 +25,45 @@
     }
   </style>
 </head>
-<body>
+<body id="root">
   <a onclick="openDocumentDetector()" class="btn">
     ABRIR CAPTURA DE DOCUMENTO
   </a>
 
   <script>
-    var documentDetectorOptions = {
+    const sdkToken = '<TOKEN>';
+   
+    const documentDetectorOptions = {
+      sdkToken: sdkToken,
       mobileOnly: false,
-      theme: {
-        closeButton: '#fff',
-        checkmark: '#fff',
-        alertButton: '#fff',
-        cameraSwitch: '#fff',
-        pictureButton: '#fff',
-      }
+      disableAnalytics: true,
+      hideTitle: false,
+      hideMask: false,
+      hideSwitchCameraButton: false
     };
+   
+    const documentDetector = new window.DocumentDetectorSdk(documentDetectorOptions);
 
-    var token = '<TOKEN>';
-    var documentDetector = DocumentDetector ? new DocumentDetector.initialize(token, documentDetectorOptions) : null;
+    async function openDocumentDetector() {
 
-    documentDetector.on('failed', (data) => {
-      console.log('DocumentDetector failed while initializing');
-      console.log(data.detail);
-    });
+      await documentDetector.initialize();
 
-    function openDocumentDetector() {
-      documentDetector.open({
-        documentType: 'CNH', // tipo do documento CNH ou RG
-      }).catch((err) => {
-        console.log(err);
-      });
+      await documentDetector.open(
+        {
+          documentType: 'CNH', // tipo do documento CNH ou RG
+        },
+        document.getElementsByTagName('body')[0] // Container usado para construir o SDK
+      );
 
-      documentDetector.on('ready', () => {
-        console.log('SDK - ready!');
+      const capture = await documentDetector.captureBoth(); // Captura a frente e o verso do documento de forma conjunta
+      const front = capture.front.imageUrl; // Resultado da captura da frente do documento
+      const back = capture.back.imageUrl; // Resultado da captura do verso do documento
 
-        documentDetector.initPermissions()
-        .then(accepted => {
-          if (accepted) {
-            // Usuário permitiu uso da camera
-          }
-        })
-        .catch(err => {
-          // Houve um erro ao pedir acesso a camera
-        });
-      });
+      console.log('captures');
+      console.log({ front, back });
 
-      documentDetector.on('finished', e => {
-        console.log('SDK - finished!');
-        console.log(e.detail);
-      });
-
-      documentDetector.on('closed', () => {
-        console.log('SDK - closed!');
-      });
+      documentDetector.dispose(); // Libera os recursos utilizados pelo SDK
+      documentDetector.close(); // Finaliza o SDK
     };
   </script>
 </body>
